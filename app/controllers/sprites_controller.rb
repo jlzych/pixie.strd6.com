@@ -48,7 +48,12 @@ class SpritesController < ResourceController::Base
 
     render :action => :pixie
   end
-
+  
+  def mobile
+    @sprite = Sprite.new
+    render :layout => "mobile"
+  end
+  
   def load
     @width = sprite.width
     @height = sprite.height

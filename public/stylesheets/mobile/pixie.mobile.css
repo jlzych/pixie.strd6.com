@@ -1,0 +1,31 @@
+/* line 3, ../../../app/stylesheets/mobile/pixie.mobile.sass */
+.pixie .actions, .pixie .toggle_holder, .pixie .preview, .pixie .color_picker_holder {
+  display: none;
+}
+/* line 6, ../../../app/stylesheets/mobile/pixie.mobile.sass */
+.pixie .toolbar {
+  display: auto;
+  position: auto;
+  width: 100%;
+}
+/* line 11, ../../../app/stylesheets/mobile/pixie.mobile.sass */
+.pixie .toolbar .tool {
+  display: inline-block;
+}
+/* line 14, ../../../app/stylesheets/mobile/pixie.mobile.sass */
+.pixie .swatch {
+  display: inline-block;
+  float: none;
+  height: 20px;
+  width: 20px;
+}
+/* line 19, ../../../app/stylesheets/mobile/pixie.mobile.sass */
+.pixie .swatch .selected {
+  border: 2px solid #444444;
+}
+
+/* line 23, ../../../app/stylesheets/mobile/pixie.mobile.sass */
+.undo {
+  left: 6px;
+  right: auto;
+}

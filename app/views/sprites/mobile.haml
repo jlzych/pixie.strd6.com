@@ -1,0 +1,134 @@
+- unless @sprite.new_record?
+  - @meta_desc = "Load #{sprite.meta_desc}"
+
+= stylesheet_link_tag 'pixie/pixie', 'mobile/jqtouch.min.css', 'mobile/theme.min.css', 'mobile/pixie.mobile'
+= javascript_include_tag 'pixie/jqcolor', 'pixie/jquery.hotkeys', 'mobile/pixie.mobile', 'mobile/jqtouch.min.js'
+
+- width = @width || 32
+- height = @height || 32
+- data = @data
+
+#pixie.current
+  .toolbar
+    %a.button.undo Undo
+    %h1 Pixie
+    %a.button Save
+
+#newCanvasModal{ :style => 'display: none' }
+  %p
+    = label_tag :resize_width, "width"
+    = text_field_tag :resize_width, width, {:title => 'width'}
+  %p
+    = label_tag :resize_height, "height"
+    = text_field_tag :resize_height, height, {:title => 'height'}
+
+  = button_to_function "New Canvas", "newCanvas()"
+
+:javascript
+  $.jQTouch({
+      statusBar: 'black-translucent'
+  });
+
+:javascript
+  function newCanvas() {
+    var newWidth = $('#resize_width').val();
+    var newHeight = $('#resize_height').val();
+
+    window.location.href = '/sprites/new?width=' + newWidth + '&height=' + newHeight
+  }
+
+  function setNewDimensions() {
+    $("#newCanvasModal").removeAttr("style").modal({
+      containerCss: {
+        height: 200,
+        width: 400
+      },
+      onClose: function() {
+        $.modal.close();
+        $("#newCanvasModal").attr("style", "display: none");
+      }
+    });
+  }
+
+:javascript
+  (function($) {
+    installedTools = [#{installed_tools.map(&:code).join(',')}];
+
+    function postImage() {
+      notify("Saving, please wait...");
+
+      var postData = {
+        'format': 'js',
+        'sprite[width]': #{width},
+        'sprite[height]': #{height},
+        'sprite[parent_id]': #{@parent_id.to_json},
+        'sprite[file_base64_encoded]': canvas.toBase64(),
+        'sprite[replay_data]': JSON.stringify(canvas.getReplayData())
+      };
+
+      $.post('/sprites', postData, function(data) {
+        eval(data);
+        trackPageview("/event/save_drawing");
+        canvas.dirty(false);
+        $(".tool.button").last().removeAttr("disabled");
+      }, "script");
+    }
+
+    $('#pixie').pixie({
+      width: #{width},
+      height: #{height},
+      frames: #{data ? data.length : 1},
+      initializer: function(canvas) {
+        // HAX: Global ref of canvas
+        window.canvas = canvas;
+
+        canvas.addAction({
+          name: "Replay",
+          icon: "/images/icons/resultset_next.png",
+          perform: function(canvas) {
+            canvas.replay();
+          },
+          undoable: false
+        });
+
+        canvas.addAction({
+          name: "New",
+          icon: "/images/icons/page_white_add.png",
+          perform: function(canvas) {
+            setNewDimensions();
+          },
+          undoable: false
+        });
+
+        canvas.addAction({
+          name: "Save",
+          icon: "/images/icons/database_save.png",
+          perform: function(canvas) {
+            $(".tool.button").last().attr("disabled", true);
+            window.onbeforeunload = undefined;
+            postImage();
+          },
+          undoable: false
+        });
+
+        $.each(installedTools, function(i, tool) {
+          canvas.addTool(tool);
+        });
+
+        (function(frameData) {
+          canvas.setInitialState(frameData);
+        }(#{data.to_json}));
+
+        if(#{!!@replay_data}) {
+          canvas.replay(#{@replay_data});
+        }
+
+        window.onbeforeunload = function() {
+          if (canvas.dirty()) {
+            return "Your changes haven't yet been saved, if you leave now you will lose your work.";
+          }
+        };
+      }
+    });
+
+  })(jQuery);

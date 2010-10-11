@@ -79,6 +79,7 @@ PixieStrd6Com::Application.routes.draw do |map|
     collection do
       get :load_url
       get :upload
+      get :mobile
       post :import
     end
   end
